@@ -1,7 +1,7 @@
 <template>
   <div style="position: relative">
     <div style="position: fixed; z-index: 10; left: 20px; top: 20px; color: white">
-      <!-- <button class="tbt" @click="">大气层</button> -->
+      <button class="tbt" @click="heightLine">等高线</button>
     </div>
 
     <div id="mapContainer"></div>
@@ -15,6 +15,10 @@ import * as Cesium from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
 import CesiumAna from './ana/index.ts'
+
+function heightLine() {
+  window.ca.createHeightLine()
+}
 
 onMounted(() => {
   Cesium.Ion.defaultAccessToken =
@@ -46,6 +50,7 @@ onMounted(() => {
     },
   });
 
+  window.ca = new CesiumAna(viewer)
 });
 </script>
 
