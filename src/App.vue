@@ -36,6 +36,7 @@ onMounted(() => {
     animation: false, //是否创建动画小器件，左下角仪表
     sceneModePicker: false,
     shouldAnimate: true,
+    terrainProvider: Cesium.createWorldTerrain()
   });
 
   viewer.scene.camera.setView({
