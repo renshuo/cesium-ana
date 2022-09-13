@@ -56,6 +56,30 @@ export default class CesiumAnalyzer {
     }
   }
 
+  private generateMaskSquareLine1(square: Array<Cartographic>, hei: number): Array<Array<Cartesian3>> {
+    let isHeigher = square.map( p => p.height > hei)
+    let code = isHeigher.map( b => b ? "1" : "0").join("")
+    let poses = square.map( p => Cartographic.toCartesian(p, this.viewer.scene.globe.ellipsoid))
+    switch(code) {
+      case "0000": return []
+      case "0001": return [[Cartesian3.midpoint(poses[0], poses[3], new Cartesian3()), Cartesian3.midpoint(poses[2], poses[3], new Cartesian3())]]
+      case "0010": return [[Cartesian3.midpoint(poses[1], poses[2], new Cartesian3()), Cartesian3.midpoint(poses[2], poses[3], new Cartesian3())]]
+      case "0011": return [[Cartesian3.midpoint(poses[0], poses[3], new Cartesian3()), Cartesian3.midpoint(poses[1], poses[2], new Cartesian3())]]
+      case "0100": return [[Cartesian3.midpoint(poses[0], poses[1], new Cartesian3()), Cartesian3.midpoint(poses[1], poses[2], new Cartesian3())]]
+      case "0101": return [[Cartesian3.midpoint(poses[0], poses[1], new Cartesian3()), Cartesian3.midpoint(poses[0], poses[3], new Cartesian3())], [Cartesian3.midpoint(poses[2], poses[1], new Cartesian3()), Cartesian3.midpoint(poses[2], poses[3], new Cartesian3())]]
+      case "0110": return [[Cartesian3.midpoint(poses[0], poses[1], new Cartesian3()), Cartesian3.midpoint(poses[2], poses[3], new Cartesian3())]]
+      case "0111": return [[Cartesian3.midpoint(poses[0], poses[1], new Cartesian3()), Cartesian3.midpoint(poses[0], poses[3], new Cartesian3())]]
+      case "1000": return [[Cartesian3.midpoint(poses[0], poses[1], new Cartesian3()), Cartesian3.midpoint(poses[0], poses[3], new Cartesian3())]]
+      case "1001": return [[Cartesian3.midpoint(poses[0], poses[1], new Cartesian3()), Cartesian3.midpoint(poses[2], poses[3], new Cartesian3())]]
+      case "1010": return [[Cartesian3.midpoint(poses[0], poses[1], new Cartesian3()), Cartesian3.midpoint(poses[0], poses[3], new Cartesian3())], [Cartesian3.midpoint(poses[2], poses[1], new Cartesian3()), Cartesian3.midpoint(poses[2], poses[3], new Cartesian3())]]
+      case "1011": return [[Cartesian3.midpoint(poses[0], poses[1], new Cartesian3()), Cartesian3.midpoint(poses[1], poses[2], new Cartesian3())]]
+      case "1100": return [[Cartesian3.midpoint(poses[0], poses[3], new Cartesian3()), Cartesian3.midpoint(poses[1], poses[2], new Cartesian3())]]
+      case "1101": return [[Cartesian3.midpoint(poses[1], poses[2], new Cartesian3()), Cartesian3.midpoint(poses[2], poses[3], new Cartesian3())]]
+      case "1110": return [[Cartesian3.midpoint(poses[0], poses[3], new Cartesian3()), Cartesian3.midpoint(poses[2], poses[3], new Cartesian3())]]
+      case "1111": return []
+    }
+  }
+
 
   private getHeightLineBySquare(points: Array<boolean>): Array<Feature<Point>> {
 
@@ -71,43 +95,32 @@ export default class CesiumAnalyzer {
       let bx = turf.bbox(turf.lineString(points))
       console.log("get bbox: ", bx)
 
-      //get point grid
-      var grid = turf.pointGrid(bx, this.cellSide, this.options);
-      console.log("get grid: ", grid)
-
       //get square grid
       let sgrid = turf.squareGrid(bx, this.cellSide, this.options)
       console.log("get square grid: ", sgrid)
 
-      let points2 = points.concat([points[0]])
-      let maskPolygon = turf.polygon([points2])
-      console.log("get orging polygon: ", maskPolygon)
+      let colist = sgrid.features.map( square => square.geometry.coordinates[0].slice(0,4))
+        .map(poses => poses.map( pos => this.getHeight(pos[0], pos[1])))
+      console.log("get cartographic list: ", colist)
 
-      let filtered = grid //turf.pointsWithinPolygon(grid, maskPolygon)
-      console.log("get filtered points: ", filtered)
-
-      //generate height data
-      let cts = filtered.features.map(f => f.geometry.coordinates)
-        .map(co => this.getHeight(co[0], co[1]))
-      let cti = cts.map((co, i) => { return { carto: co, index: i} })
-      console.log("get heights: ", cti)
+      // filter grid TODO
 
       //get top and bottom
-      let top = R.reduce(R.maxBy( ctin => ctin.carto.height), cti[0] , cti )
-      let bottom = R.reduce(R.minBy( ctin => ctin.carto.height), cti[0], cti )
-      console.log("get tiptop: ", top, bottom)
+      let top = R.reduce(R.maxBy( co => co[0].height), colist[0] , colist )
+      let bottom = R.reduce(R.minBy( co => co[0].height), colist[0], colist )
+      let midHeight = (top[0].height + bottom[0].height) / 2
+      console.log("get tiptop: ", top, bottom, midHeight)
 
-      let midHeight = (top.carto.height+bottom.carto.height)/2
-      let hlines = sgrid.features.map( square => this.generateMaskSquareLine(square, midHeight))
-//      console.log("get height lines: ", hlines)
+      let hlines = colist.map( coary => this.generateMaskSquareLine1(coary, midHeight))
+      console.log("get height line1: ", hlines)
+
       //draw heigh line
       hlines.map( lines => {
         lines.map( line => {
-          let poss = line.map(ps => Cartesian3.fromDegrees(ps.geometry.coordinates[0], ps.geometry.coordinates[1]))
           this.viewer.entities.add(new Entity({
             polyline: {
               width: 2,
-              positions: poss,
+              positions: line,
               material: Color.fromCssColorString("#ff0000"),
               clampToGround: true,
             }
