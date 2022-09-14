@@ -18,8 +18,10 @@ export default class CesiumAnalyzer {
     })
   }
 
-  private cellSide = 100;
+  private cellSide = 50;
   private options = { units: 'meters' };
+
+  private heiBreakNum = 10
 
   private getHeightNum(lon: number, lat: number): number {
     let co = Cartographic.fromDegrees(lon, lat)
@@ -69,8 +71,12 @@ export default class CesiumAnalyzer {
 
       let topHei = top.properties.height
       let bottomHei = bottom.properties.height
-      let delta = (topHei - bottomHei) / 4
-      let breaks = [bottomHei, bottomHei + delta * 1, bottomHei + delta * 2, bottomHei + delta * 3, topHei]
+      let delta = (topHei - bottomHei) / this.heiBreakNum
+      let breaks = []
+      for (let i = 0; i < this.heiBreakNum+1; i++) {
+        let hei = bottomHei + delta*i
+        breaks.push(hei)
+      }
       console.log("get breaks: ", breaks)
       let hlines = turf.isolines(cts, breaks, { zProperty: "height" })
       console.log("get height lines: ", hlines)
