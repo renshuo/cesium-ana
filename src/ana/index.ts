@@ -30,10 +30,15 @@ export default class CesiumAnalyzer {
   }
 
   public createHeightLine() {
-    let g = this.gm.create({ obj: 'Polygon', fill: false, outlineColor: "#00ff00", outlineWidth: 3, outline: true })
+    let g = this.gm.create({ obj: 'Rectangle', fill: true, alpha: 0.2 })
     this.gm.setGraphFinishHandler((graph) => {
       let pos = graph.getCtlPositionsPos()
-      let points: Array<Array<number>> = pos.map(p => [p.lon, p.lat])
+      let points: Array<Array<number>> = [
+        [pos[0].lon, pos[0].lat],
+        [pos[1].lon, pos[0].lat],
+        [pos[1].lon, pos[1].lat],
+        [pos[0].lon, pos[1].lat],
+      ] //pos.map(p => [p.lon, p.lat])
 
       //get bbox
       let bx = turf.bbox(turf.lineString(points))
@@ -91,7 +96,7 @@ export default class CesiumAnalyzer {
             polyline: {
               width: 2,
               positions: poss,
-              material: Color.fromCssColorString("#00ff00"),
+              material: Color.fromCssColorString("#ff0000"),
               clampToGround: true,
             }
           }))
