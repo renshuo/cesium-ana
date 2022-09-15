@@ -25,7 +25,6 @@ export default class CesiumAnalyzer {
     })
   }
 
-
   private getHeightNum(lon: number, lat: number): number {
     let co = Cartographic.fromDegrees(lon, lat)
     return this.viewer.scene.globe.getHeight(co)
