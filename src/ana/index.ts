@@ -7,6 +7,13 @@ import { Feature, featureCollection, FeatureCollection, Point, Polygon } from '@
 
 export default class CesiumAnalyzer {
 
+  public heiBreakDelta = 100
+
+  private pointGridOptions = {
+    cellSide: 50,
+    options: { units: 'meters'}
+  }
+
   private viewer: Viewer
   private gm: GraphManager
 
@@ -18,15 +25,10 @@ export default class CesiumAnalyzer {
     })
   }
 
-  private cellSide = 50;
-  private options = { units: 'meters' };
-
-  private heiBreakNum = 10
 
   private getHeightNum(lon: number, lat: number): number {
     let co = Cartographic.fromDegrees(lon, lat)
-    let hei = this.viewer.scene.globe.getHeight(co)
-    return hei
+    return this.viewer.scene.globe.getHeight(co)
   }
 
   public createHeightLine() {
@@ -48,12 +50,9 @@ export default class CesiumAnalyzer {
     let bottomHei = bottom.properties.height
     console.log("get tiptop: ", topHei, bottomHei)
 
-    let delta = (topHei - bottomHei) / this.heiBreakNum
-    let breaks = []
-    for (let i = 0; i < this.heiBreakNum + 1; i++) {
-      let hei = bottomHei + delta * i
-      breaks.push(hei)
-    }
+    let bottomCeil = Math.ceil(bottomHei/this.heiBreakDelta)-1
+    let topCeil = Math.ceil(topHei/this.heiBreakDelta)
+    let breaks = R.range(bottomCeil, topCeil).map( n => n*this.heiBreakDelta)
     console.log("get breaks: ", breaks)
     return breaks
   }
@@ -72,7 +71,7 @@ export default class CesiumAnalyzer {
     console.log("get bbox: ", bx)
 
     //get point grid
-    var grid = turf.pointGrid(bx, this.cellSide, this.options);
+    let grid = turf.pointGrid(bx, this.pointGridOptions.cellSide, this.pointGridOptions.options);
     console.log("get grid: ", grid)
 
     //generate height data
