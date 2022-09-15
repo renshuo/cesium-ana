@@ -1,7 +1,23 @@
 {
   "name": "cesium-ana",
-  "private": true,
-  "version": "0.0.0",
+  "private": false,
+  "version": "0.0.2",
+  "author": "sren",
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "cesium",
+    "analyse"
+  ],
+  "module": "./dist/cesium-ana.es.js",
+  "main": "./dist/cesium-ana.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/cesium-ana.es.js",
+      "require": "./dist/cesium-ana.umd.js"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",

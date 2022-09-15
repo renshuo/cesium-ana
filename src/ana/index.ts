@@ -41,7 +41,24 @@ export default class CesiumAnalyzer {
     })
   }
 
-  public drawHeightLine(graph) {
+  private getBreaks(grid: FeatureCollection): Array<number> {
+    let top = R.reduce(R.maxBy(p => p.properties.height), grid.features[0], grid.features)
+    let bottom = R.reduce(R.minBy(p => p.properties.height), grid.features[0], grid.features)
+    let topHei = top.properties.height
+    let bottomHei = bottom.properties.height
+    console.log("get tiptop: ", topHei, bottomHei)
+
+    let delta = (topHei - bottomHei) / this.heiBreakNum
+    let breaks = []
+    for (let i = 0; i < this.heiBreakNum + 1; i++) {
+      let hei = bottomHei + delta * i
+      breaks.push(hei)
+    }
+    console.log("get breaks: ", breaks)
+    return breaks
+  }
+
+  private drawHeightLine(graph) {
     let pos = graph.getCtlPositionsPos()
     let points: Array<Array<number>> = [
       [pos[0].lon, pos[0].lat],
@@ -58,18 +75,8 @@ export default class CesiumAnalyzer {
     var grid = turf.pointGrid(bx, this.cellSide, this.options);
     console.log("get grid: ", grid)
 
-    //get mask polygon
-    let points2 = points.concat([points[0]])
-    let maskPolygon = turf.polygon([points2])
-    console.log("get orging polygon: ", maskPolygon)
-
-    //get filtered point grid
-    let filtered = grid //turf.pointsWithinPolygon(grid, maskPolygon)
-    console.log("get filtered points: ", filtered)
-
     //generate height data
-    let cts = filtered
-    cts.features
+    grid.features
       .map((f, i) => {
         let co = f.geometry.coordinates
         let hei = this.getHeightNum(co[0], co[1])
@@ -77,23 +84,11 @@ export default class CesiumAnalyzer {
         f.properties.index = i
         return f
       })
-    console.log("get heights: ", cts)
+    console.log("get heights: ", grid)
 
-    //get top and bottom
-    let top = R.reduce(R.maxBy(p => p.properties.height), cts.features[0], cts.features)
-    let bottom = R.reduce(R.minBy(p => p.properties.height), cts.features[0], cts.features)
-    console.log("get tiptop: ", top, bottom)
+    let breaks = this.getBreaks(grid)
 
-    let topHei = top.properties.height
-    let bottomHei = bottom.properties.height
-    let delta = (topHei - bottomHei) / this.heiBreakNum
-    let breaks = []
-    for (let i = 0; i < this.heiBreakNum + 1; i++) {
-      let hei = bottomHei + delta * i
-      breaks.push(hei)
-    }
-    console.log("get breaks: ", breaks)
-    let hlines = turf.isolines(cts, breaks, { zProperty: "height" })
+    let hlines = turf.isolines(grid, breaks, { zProperty: "height" })
     console.log("get height lines: ", hlines)
 
     hlines.features.map(lines => {
