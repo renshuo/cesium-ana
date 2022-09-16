@@ -2,7 +2,8 @@
   <div style="position: relative">
     <div style="position: fixed; z-index: 10; left: 20px; top: 20px; color: white">
       <button class="tbt" @click="heightLine">等高线</button>
-    </div>
+      <button class="tbt" @click="createSightLine">通视线</button> 
+   </div>
 
     <div id="mapContainer"></div>
   </div>
@@ -18,6 +19,9 @@ import CesiumAna from './ana/index.ts'
 
 function heightLine() {
   window.ca.createHeightLine()
+}
+function createSightLine() {
+  window.ca.createSightLine()
 }
 
 onMounted(() => {

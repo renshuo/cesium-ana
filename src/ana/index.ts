@@ -1,6 +1,7 @@
 import { Cartesian3, Cartographic, Color, Entity, JulianDate, Viewer } from 'cesium';
 import { GraphManager } from 'cesium-plotting-symbol';
 import HeightLine from './HeightLine';
+import SightLine from './SightLine';
 
 
 export default class CesiumAnalyzer {
@@ -22,5 +23,10 @@ export default class CesiumAnalyzer {
 
   public createHeightLine() {
     this.heightLine.createHeightLine()
+  }
+
+  public createSightLine() {
+    let obj = new SightLine({}, this.viewer, this.gm.layer);
+    this.gm.em.create(obj)
   }
 }
