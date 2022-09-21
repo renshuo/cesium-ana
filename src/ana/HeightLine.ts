@@ -1,4 +1,4 @@
-import { Cartesian3, Cartographic, Color, Entity, JulianDate, Viewer } from 'cesium';
+import { Cartesian3, Cartographic, Color, Entity, HeightReference, JulianDate, Viewer } from 'cesium';
 import { GraphManager } from 'cesium-plotting-symbol';
 import * as turf from '@turf/turf';
 import * as R from 'ramda';
@@ -23,7 +23,7 @@ export default class HeightLine {
   }
 
   public createHeightLine() {
-    let g = this.gm.create({ obj: 'Rectangle', fill: true, alpha: 0.2 })
+    let g = this.gm.create({ obj: 'Rectangle', fill: true, alpha: 0.2, clamp: true })
 
     this.gm.setGraphFinishHandler((graph) => {
       if (!graph.isHeightLined) {
@@ -56,11 +56,11 @@ export default class HeightLine {
   private drawHeightLine(graph) {
     let pos = graph.getCtlPositionsPos()
     let points: Array<Array<number>> = [
-      [pos[0].lon, pos[0].lat],
-      [pos[1].lon, pos[0].lat],
-      [pos[1].lon, pos[1].lat],
-      [pos[0].lon, pos[1].lat],
-    ] //pos.map(p => [p.lon, p.lat])
+      [pos[0].longitude, pos[0].latitude],
+      [pos[1].longitude, pos[0].latitude],
+      [pos[1].longitude, pos[1].latitude],
+      [pos[0].longitude, pos[1].latitude],
+    ] //pos.map(p => [p.longitude, p.latitude])
 
     //get bbox
     let bx = turf.bbox(turf.lineString(points))
