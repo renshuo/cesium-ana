@@ -1,6 +1,7 @@
 import { Cartesian3, Cartographic, Color, Entity, JulianDate, Viewer } from 'cesium';
 import { GraphManager } from 'cesium-plotting-symbol';
 import HeightLine from './HeightLine';
+import SightCircle from './SightCircle';
 import SightLine from './SightLine';
 
 
@@ -27,6 +28,11 @@ export default class CesiumAnalyzer {
 
   public createSightLine() {
     let obj = new SightLine({}, this.viewer, this.gm.layer);
+    this.gm.em.create(obj)
+  }
+
+  public createSightCircle() {
+    let obj = new SightCircle({}, this.viewer, this.gm.layer);
     this.gm.em.create(obj)
   }
 }

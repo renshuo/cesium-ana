@@ -9,22 +9,22 @@ export default class SightLine extends Graph  {
       type: '视域线',
       maskedColor: '#ff0000',
       clamp: false,
+      width: 2,
       ...prop
     }, viewer, layer)
     this.propDefs.push(
       { name: 'maskedColor', title: '不可视段颜色', type: 'color', editable: true },
+      { name: 'width', title: '线宽', type: 'number', editable: true, min: 1, max: 256 },
     )
   }
 
-  private getSightPoints(ctl0: Entity, ctl1: Entity): Cartesian3 {
-    let opos = ctl0.position?.getValue(JulianDate.now())
-    let dpos = ctl1.position?.getValue(JulianDate.now())
+  private getSightPoints(opos: Cartesian3, dpos: Cartesian3): Cartesian3 {
     let pab = Cartesian3.subtract(dpos, opos, new Cartesian3())
     if (Cartesian3.magnitude(pab) == 0) {
       return dpos
     }
     let dir = Cartesian3.normalize(pab, new Cartesian3())
-    let ray = ctl1.ray ? ctl1.ray : new Ray()
+    let ray = new Ray()
     ray.direction = dir
     ray.origin = opos
     let interval = this.viewer.scene.globe.pick(ray, this.viewer.scene, new Cartesian3())
@@ -42,7 +42,9 @@ export default class SightLine extends Graph  {
             return this.highLighted ? c.brighten(0.6, new Color()) : c
           }, true)),
         positions: new CallbackProperty((time, result) => {
-          return [this.getSightPoints(ctl0, ctl1), ctl1.position.getValue(time)]
+          let opos = ctl0.position?.getValue(JulianDate.now())
+          let dpos = ctl1.position?.getValue(JulianDate.now())
+          return [this.getSightPoints(opos, dpos), ctl1.position.getValue(time)]
         }, false),
         classificationType: ClassificationType.TERRAIN,
         clampToGround: false
@@ -59,7 +61,9 @@ export default class SightLine extends Graph  {
             return this.highLighted ? c.brighten(0.6, new Color()) : c
           }, true)),
         positions: new CallbackProperty((time, result) => {
-          return [ctl0.position.getValue(time), this.getSightPoints(ctl0, ctl1)]
+          let opos = ctl0.position?.getValue(JulianDate.now())
+          let dpos = ctl1.position?.getValue(JulianDate.now())
+          return [ctl0.position.getValue(time), this.getSightPoints(opos, dpos)]
         }, false),
         clampToGround: false
       }
@@ -91,7 +95,9 @@ export default class SightLine extends Graph  {
           heightReference: HeightReference.CLAMP_TO_GROUND,
         },
         position: new CallbackProperty((time, result) => {
-          return this.getSightPoints(this.ctls[0], ctl)
+          let opos = this.ctls[0].position?.getValue(JulianDate.now())
+          let dpos = ctl.position?.getValue(JulianDate.now())
+          return this.getSightPoints(opos, dpos)
         }, false)
       })))
     }

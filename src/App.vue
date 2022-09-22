@@ -3,7 +3,8 @@
     <div style="position: fixed; z-index: 10; left: 20px; top: 20px; color: white">
       <button class="tbt" @click="heightLine">等高线</button>
       <button class="tbt" @click="createSightLine">通视线</button> 
-   </div>
+      <button class="tbt" @click="createSightCircle">圆形通视</button> 
+    </div>
 
     <div id="mapContainer"></div>
   </div>
@@ -22,6 +23,10 @@ function heightLine() {
 }
 function createSightLine() {
   window.ca.createSightLine()
+}
+
+function createSightCircle() {
+  window.ca.createSightCircle()
 }
 
 onMounted(() => {
