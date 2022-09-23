@@ -1,5 +1,5 @@
 import SightLine from "./SightLine"
-import { Viewer, Entity, Cartesian3, CallbackProperty, ColorMaterialProperty, Color, JulianDate, ClassificationType, HeightReference, Ray, Cartographic } from "cesium";
+import { Viewer, Entity, Cartesian3, CallbackProperty, ColorMaterialProperty, Color, JulianDate, ClassificationType, HeightReference, Ray, Cartographic, PolygonHierarchy } from "cesium";
 import * as turf from '@turf/turf';
 import { Feature, Polygon } from "@turf/turf";
 import R from 'ramda'
@@ -48,6 +48,26 @@ export default class SightCircle extends SightLine {
   }
 
   private addSightLineGroup(center: Entity, p1: Entity) {
+    this.shapes.push(this.entities.add(new Entity({
+      polygon: {
+        fill: false,
+        outline: true,
+        outlineColor: Color.BLUE.withAlpha(0.3),
+        outlineWidth: 2,
+        hierarchy: new CallbackProperty( (time, result) => {
+          let cpos = center.position?.getValue(JulianDate.now())
+          let opos = p1.position?.getValue(JulianDate.now())
+          let poslist: Array<Cartesian3>  = []
+          for(let i=0; i<this.steps; i++) {
+            let opos2 = this.getTargetPoint(cpos, opos, i)
+            poslist.push(opos2)
+          }
+          return new PolygonHierarchy(poslist, [])
+        }, false),
+        perPositionHeight: true,
+      }
+    })))
+
     for (let i = 0; i < this.steps; i++) {
       this.shapes.push(this.entities.add(new Entity({
         name: '不可视部分',
@@ -64,7 +84,6 @@ export default class SightCircle extends SightLine {
             let opos2 = this.getTargetPoint(cpos, opos, i)
             return [this.getSightPoints(cpos, opos2), opos2]
           }, false),
-          //classificationType: ClassificationType.TERRAIN,
           clampToGround: false
         }
       })))

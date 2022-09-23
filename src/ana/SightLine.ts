@@ -24,9 +24,7 @@ export default class SightLine extends Graph  {
       return dpos
     }
     let dir = Cartesian3.normalize(pab, new Cartesian3())
-    let ray = new Ray()
-    ray.direction = dir
-    ray.origin = opos
+    let ray = new Ray(opos, dir)
     let interval = this.viewer.scene.globe.pick(ray, this.viewer.scene, new Cartesian3())
     return interval ? interval : dpos
   }
