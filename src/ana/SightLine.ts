@@ -26,7 +26,18 @@ export default class SightLine extends Graph  {
     let dir = Cartesian3.normalize(pab, new Cartesian3())
     let ray = new Ray(opos, dir)
     let interval = this.viewer.scene.globe.pick(ray, this.viewer.scene, new Cartesian3())
-    return interval ? interval : dpos
+
+    if (interval) {
+      let distance = Cartesian3.distance(opos, dpos)
+      let intervalDistance = Cartesian3.distance(opos, interval)
+      if (intervalDistance > distance) {
+        return dpos
+      }else {
+        return interval
+      }
+    } else {
+      return dpos
+    }
   }
 
   private addSightLine(ctl0: Entity, ctl1: Entity) {
