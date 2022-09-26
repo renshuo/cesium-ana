@@ -8,7 +8,7 @@ export default class SightCircle extends SightLine {
 
 
   maxPointNum: number = 2
-  option = { steps: 32, unites: 'meters' }
+  option = { steps: 36, unites: 'meters' }
   steps = 32
 
   constructor(prop: {}, viewer: Viewer, layer: Entity) {
@@ -25,18 +25,12 @@ export default class SightCircle extends SightLine {
     var center = turf.point([centerPos.longitude, centerPos.latitude]);
     let ppos = this.Cartesian3ToPosition(p1)
     var to = turf.point([ppos.longitude, ppos.latitude]);
-    //console.log("get pos: ", centerPos, ppos)
 
     let option = { unites: 'meters' }
     var radius = turf.distance(center, to, option);
-
-    var bearing1 = i===0 ? 0 : 360 / this.steps *( i-1);
     var bearing2 = 360 / this.steps * i;
-
-    var arc = turf.lineArc(center, radius, bearing1, bearing2, option);
-    let lastPos = arc.geometry.coordinates.pop()
-    let opos2 = Cartesian3.fromDegrees(lastPos[0], lastPos[1], centerPos.height)
-    return opos2
+    let targetPos = turf.destination(center, radius, bearing2, option)
+    return Cartesian3.fromDegrees(targetPos.geometry.coordinates[0], targetPos.geometry.coordinates[1], centerPos.height)
   }
 
   override increaseShape(ctl: Entity): void {
