@@ -76,9 +76,10 @@ export default class SightCircle extends SightLine {
             let cpos = center.position?.getValue(JulianDate.now())
             let opos = p1.position?.getValue(JulianDate.now())
             let opos2 = this.getTargetPoint(cpos, opos, i)
-            return [this.getSightPoints(cpos, opos2), opos2]
+            let peak = this.getSightPoints(cpos, opos2)
+            return [peak[0], opos2]
           }, false),
-          clampToGround: false
+          clampToGround: true
         }
       })))
 
@@ -95,9 +96,10 @@ export default class SightCircle extends SightLine {
             let cpos = center.position?.getValue(JulianDate.now())
             let opos = p1.position?.getValue(JulianDate.now())
             let opos2 = this.getTargetPoint(cpos, opos, i)
-            return [cpos, this.getSightPoints(cpos, opos2)]
+            let peak = this.getSightPoints(cpos, opos2)
+            return [cpos, peak[0]]
           }, false),
-          clampToGround: false
+          clampToGround: true
         }
       })))
     }
