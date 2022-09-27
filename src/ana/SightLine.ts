@@ -28,8 +28,8 @@ export default class SightLine extends Graph  {
     let step = 50
     for(let i=0; i<step; i++) {
       let pos = Cartesian3.lerp(opos, dpos, i/step, new Cartesian3())
-      let pos2 = this.viewer.scene.clampToHeight(pos, [], 0.1, new Cartesian3())
-      let co = Cartographic.fromCartesian(pos2)
+      let co = Cartographic.fromCartesian(pos)
+      co.height = this.viewer.scene.globe.getHeight(co)
       intPos.push({pt: co, index: i})
     }
 
@@ -76,6 +76,7 @@ export default class SightLine extends Graph  {
               return undefined
             }
           }, false),
+          clampToGround: true
         }
       })))
       let ent = this.entities.add(new Entity({
@@ -98,6 +99,7 @@ export default class SightLine extends Graph  {
               return undefined
             }
           }, false),
+          clampToGround: true
         }
       }))
       this.fillShape(ent)
