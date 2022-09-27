@@ -49,14 +49,10 @@ onMounted(() => {
   });
 
   viewer.scene.camera.setView({
-    destination: new Cesium.Cartesian3(
-      277096.634865404,
-      5647834.481964232,
-      2985563.7039122293
-    ),
+    destination: Cesium.Cartesian3.fromDegrees(108.8, 34.062, 2600),
     orientation: {
-      heading: 4.731089976107251,
-      pitch: -0.32003481981370063,
+      heading: Cesium.Math.toRadians(150),
+      pitch: Cesium.Math.toRadians(-30),
     },
   });
 

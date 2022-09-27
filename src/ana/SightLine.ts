@@ -23,11 +23,6 @@ export default class SightLine extends Graph  {
   private polylineNum = 3 // 视线的线段数，视线被分割过多时，会导致远处线段不绘制
 
   private getSightPoints(opos: Cartesian3, dpos: Cartesian3): Array<Array<{}>> {
-    let distance = Cartesian3.distance(opos, dpos)
-    if (distance<1) {
-      return [dpos]
-    }
-
     let intPos = []
     for(let i=0; i<this.step; i++) {
       let pos = Cartesian3.lerp(opos, dpos, i/this.step, new Cartesian3())
