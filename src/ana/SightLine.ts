@@ -18,6 +18,10 @@ export default class SightLine extends Graph  {
     )
   }
 
+  private humanHeight = 2 // 原点的人身高度
+  private step = 50 // 视线的切分数量
+  private polylineNum = 3 // 视线的线段数，视线被分割过多时，会导致远处线段不绘制
+
   private getSightPoints(opos: Cartesian3, dpos: Cartesian3): Array<Array<{}>> {
     let distance = Cartesian3.distance(opos, dpos)
     if (distance<1) {
@@ -25,21 +29,19 @@ export default class SightLine extends Graph  {
     }
 
     let intPos = []
-    let step = 50
-    for(let i=0; i<step; i++) {
-      let pos = Cartesian3.lerp(opos, dpos, i/step, new Cartesian3())
+    for(let i=0; i<this.step; i++) {
+      let pos = Cartesian3.lerp(opos, dpos, i/this.step, new Cartesian3())
       let co = Cartographic.fromCartesian(pos)
       co.height = this.viewer.scene.globe.getHeight(co)
       intPos.push({pt: co, index: i})
     }
 
     // 对视点的斜率，相对于初始斜率，变大或不变则可见，变小则不可见
-    let humanHeight = 2
-    let pos0 = intPos[0]
+    let height0 = intPos[0].pt.height + this.humanHeight
     let maxSlope = - Infinity
     for(let i=1; i<intPos.length; i++) {
       let pt = intPos[i]
-      pt.slope = (pt.pt.height - pos0.pt.height+2) / pt.index
+      pt.slope = (pt.pt.height - height0) / pt.index
       if (pt.slope >= maxSlope) {
         pt.inSight = true
         maxSlope = pt.slope
@@ -54,7 +56,7 @@ export default class SightLine extends Graph  {
 
   private addSightLine(ctl0: Entity, ctl1: Entity) {
 
-    for(let i=0; i< 5; i++) {
+    for(let i=0; i< this.polylineNum; i++) {
       this.shapes.push(this.entities.add(new Entity({
         name: '不可视部分',
         polyline: {

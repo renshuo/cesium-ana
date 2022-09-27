@@ -48,11 +48,11 @@ export default class SightCircle extends SightLine {
         outline: true,
         outlineColor: Color.BLUE.withAlpha(0.3),
         outlineWidth: 2,
-        hierarchy: new CallbackProperty( (time, result) => {
+        hierarchy: new CallbackProperty((time, result) => {
           let cpos = center.position?.getValue(JulianDate.now())
           let opos = p1.position?.getValue(JulianDate.now())
-          let poslist: Array<Cartesian3>  = []
-          for(let i=0; i<this.steps; i++) {
+          let poslist: Array<Cartesian3> = []
+          for (let i = 0; i < this.steps; i++) {
             let opos2 = this.getTargetPoint(cpos, opos, i)
             poslist.push(opos2)
           }
@@ -63,48 +63,61 @@ export default class SightCircle extends SightLine {
     })))
 
     for (let i = 0; i < this.steps; i++) {
-      this.shapes.push(this.entities.add(new Entity({
-        name: '不可视部分',
-        polyline: {
-          width: new CallbackProperty((time, result) => this.props.width, true),
-          material: new ColorMaterialProperty(
-            new CallbackProperty(() => {
-              let c = Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
-              return this.highLighted ? c.brighten(0.6, new Color()) : c
-            }, true)),
-          positions: new CallbackProperty((time, result) => {
-            let cpos = center.position?.getValue(JulianDate.now())
-            let opos = p1.position?.getValue(JulianDate.now())
-            let opos2 = this.getTargetPoint(cpos, opos, i)
-            let peak = this.getSightPoints(cpos, opos2)
-            return [peak[0], opos2]
-          }, false),
-          clampToGround: true
-        }
-      })))
+      for (let j = 0; j < this.polylineNum; j++) {
+        this.shapes.push(this.entities.add(new Entity({
+          name: '不可视部分',
+          polyline: {
+            width: new CallbackProperty((time, result) => this.props.width, true),
+            material: new ColorMaterialProperty(
+              new CallbackProperty(() => {
+                let c = Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
+                return this.highLighted ? c.brighten(0.6, new Color()) : c
+              }, true)),
+            positions: new CallbackProperty((time, result) => {
+              let cpos = center.position?.getValue(JulianDate.now())
+              let opos = p1.position?.getValue(JulianDate.now())
+              let opos2 = this.getTargetPoint(cpos, opos, i)
+              let peak = this.getSightPoints(cpos, opos2)
 
-      this.shapes.push(this.entities.add(new Entity({
-        name: '可视范围',
-        polyline: {
-          width: new CallbackProperty((time, result) => this.props.width, true),
-          material: new ColorMaterialProperty(
-            new CallbackProperty(() => {
-              let c = Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha)
-              return this.highLighted ? c.brighten(0.6, new Color()) : c
-            }, true)),
-          positions: new CallbackProperty((time, result) => {
-            let cpos = center.position?.getValue(JulianDate.now())
-            let opos = p1.position?.getValue(JulianDate.now())
-            let opos2 = this.getTargetPoint(cpos, opos, i)
-            let peak = this.getSightPoints(cpos, opos2)
-            return [cpos, peak[0]]
-          }, false),
-          clampToGround: true
-        }
-      })))
+              let poses = peak.filter(pks => !pks[0].inSight)
+              if (poses.length > j) {
+                let car3 = poses[j].map(pt => Cartographic.toCartesian(pt.pt, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
+                return car3
+              } else {
+                return undefined
+              }
+            }, false),
+            clampToGround: true
+          }
+        })))
+
+        this.shapes.push(this.entities.add(new Entity({
+          name: '可视范围',
+          polyline: {
+            width: new CallbackProperty((time, result) => this.props.width, true),
+            material: new ColorMaterialProperty(
+              new CallbackProperty(() => {
+                let c = Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha)
+                return this.highLighted ? c.brighten(0.6, new Color()) : c
+              }, true)),
+            positions: new CallbackProperty((time, result) => {
+              let cpos = center.position?.getValue(JulianDate.now())
+              let opos = p1.position?.getValue(JulianDate.now())
+              let opos2 = this.getTargetPoint(cpos, opos, i)
+              let peak = this.getSightPoints(cpos, opos2)
+              let poses = peak.filter(pks => pks[0].inSight)
+              if (poses.length > j) {
+                let car3 = poses[j].map(pt => Cartographic.toCartesian(pt.pt, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
+                return car3
+              } else {
+                return undefined
+              }
+            }, false),
+            clampToGround: true
+          }
+        })))
+      }
     }
   }
-
-
 
 }
