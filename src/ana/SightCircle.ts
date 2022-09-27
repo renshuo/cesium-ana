@@ -67,12 +67,13 @@ export default class SightCircle extends SightLine {
         this.shapes.push(this.entities.add(new Entity({
           name: '不可视部分',
           polyline: {
-            width: new CallbackProperty((time, result) => this.props.width, true),
-            material: new ColorMaterialProperty(
-              new CallbackProperty(() => {
-                let c = Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
-                return this.highLighted ? c.brighten(0.6, new Color()) : c
-              }, true)),
+            width: 2, //new CallbackProperty((time, result) => this.props.width, true),
+            material: Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha),
+            //material: Color.RED.brighten(0.3, new Color()), // new ColorMaterialProperty(
+              // new CallbackProperty(() => {
+              //   let c = Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
+              //   return this.highLighted ? c.brighten(0.6, new Color()) : c
+              // }, true)),
             positions: new CallbackProperty((time, result) => {
               let cpos = center.position?.getValue(JulianDate.now())
               let opos = p1.position?.getValue(JulianDate.now())
@@ -94,12 +95,13 @@ export default class SightCircle extends SightLine {
         this.shapes.push(this.entities.add(new Entity({
           name: '可视范围',
           polyline: {
-            width: new CallbackProperty((time, result) => this.props.width, true),
-            material: new ColorMaterialProperty(
-              new CallbackProperty(() => {
-                let c = Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha)
-                return this.highLighted ? c.brighten(0.6, new Color()) : c
-              }, true)),
+            width: 2, //new CallbackProperty((time, result) => this.props.width, true),
+            material: Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha),
+              //material: new ColorMaterialProperty(
+              // new CallbackProperty(() => {
+              //   let c = Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha)
+              //   return this.highLighted ? c.brighten(0.6, new Color()) : c
+              // }, true)),
             positions: new CallbackProperty((time, result) => {
               let cpos = center.position?.getValue(JulianDate.now())
               let opos = p1.position?.getValue(JulianDate.now())

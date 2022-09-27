@@ -55,12 +55,13 @@ export default class SightLine extends Graph  {
       this.shapes.push(this.entities.add(new Entity({
         name: '不可视部分',
         polyline: {
-          width: new CallbackProperty((time, result) => this.props.width, true),
-          material: new ColorMaterialProperty(
-            new CallbackProperty(() => {
-              let c = Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
-              return this.highLighted ? c.brighten(0.6, new Color()) : c
-            }, true)),
+          width: 2, // new CallbackProperty((time, result) => this.props.width, true),
+          material: Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha),
+          //material: new ColorMaterialProperty(
+            // new CallbackProperty(() => {
+            //   let c = Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
+            //   return this.highLighted ? c.brighten(0.6, new Color()) : c
+            // }, true)),
           positions: new CallbackProperty((time, result) => {
             let opos = ctl0.position?.getValue(JulianDate.now())
             let dpos = ctl1.position?.getValue(JulianDate.now())
@@ -76,15 +77,17 @@ export default class SightLine extends Graph  {
           clampToGround: true
         }
       })))
+
       let ent = this.entities.add(new Entity({
         name: '可视范围',
         polyline: {
-          width: new CallbackProperty((time, result) => this.props.width, true),
-          material: new ColorMaterialProperty(
-            new CallbackProperty(() => {
-              let c = Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha)
-              return this.highLighted ? c.brighten(0.6, new Color()) : c
-            }, true)),
+          width: 2, //new CallbackProperty((time, result) => this.props.width, true),
+          material: Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha),
+          //material: new ColorMaterialProperty(
+            // new CallbackProperty(() => {
+            //   let c = Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha)
+            //   return this.highLighted ? c.brighten(0.6, new Color()) : c
+            // }, true)),
           positions: new CallbackProperty((time, result) => {
             let opos = ctl0.position?.getValue(JulianDate.now())
             let dpos = ctl1.position?.getValue(JulianDate.now())
