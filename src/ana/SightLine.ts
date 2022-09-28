@@ -47,7 +47,6 @@ export default class SightLine extends Graph {
       }
     }
     let sightgp = R.groupWith((pa, pb) => pa.inSight === pb.inSight, intPos)
-    //console.log("get sight line group: ", sightgp)
     return R.drop(1, sightgp)
   }
 
@@ -66,7 +65,7 @@ export default class SightLine extends Graph {
           return undefined
         }
       }, false)
-      
+
       this.shapes.push(this.entities.add(new Entity({
         name: '不可视部分',
         polyline: {
@@ -113,45 +112,29 @@ export default class SightLine extends Graph {
   }
 
   override finish() {
+    super.finish()
     if (this.ctls.length > 1) {
       this.addSightLine(this.ctls[0], this.ctls[1])
     }
   }
-  // override increaseShape(ctl: Entity): void {
-  //   if (this.ctls.length > 1) {
-  //     this.addSightLine(this.ctls[0], ctl)
-  //   } else {
-  //     console.log("add origin point", ctl)
-  //   }
-  // }
-
-  override decreaseShape(ctl: Entity): void {
-    super.decreaseShape(ctl)
-    this.entities.remove(this.shapes.pop())
-    this.entities.remove(this.shapes.pop())
-  }
 
   override increaseTempShape(ctl: Entity): void {
-    // if (this.ctls.length > 1) {
-    //   this.tempShapes.push(this.entities.add(new Entity({
-    //     name: '遮挡点',
-    //     point: {
-    //       pixelSize: 19,
-    //       color: Color.fromCssColorString('#ff0000'),
-    //       heightReference: HeightReference.CLAMP_TO_GROUND,
-    //     },
-    //     position: new CallbackProperty((time, result) => {
-    //       // let opos = this.ctls[0].position?.getValue(JulianDate.now())
-    //       // let dpos = ctl.position?.getValue(JulianDate.now())
-    //       // let peak = this.getSightPoints(opos, dpos)
-    //       // return peak[0]
-    //       return undefined
-    //     }, false)
-    //   })))
-    // }
+    if (this.ctls.length > 1) {
+      this.tempShapes.push(this.entities.add(new Entity({
+        name: '遮挡点',
+        polyline: {
+          width: 2,
+          material: Color.fromCssColorString("#00aa00").withAlpha(0.8),
+          clampToGround: true,
+          positions: new CallbackProperty((time, result) => {
+            return this.ctls.map(ctl => ctl.position.getValue(time))
+          }, false),
+        }
+      })))
+    }
   }
 
   override decreaseTempShape(ctl: Entity): void {
-    // this.entities.remove(this.tempShapes.pop())
+    this.entities.remove(this.tempShapes.pop())
   }
 }
