@@ -1,5 +1,6 @@
 import SightLine from "./SightLine"
 import { Viewer, Entity, Cartesian3, CallbackProperty, ColorMaterialProperty, Color, JulianDate, ClassificationType, HeightReference, Ray, Cartographic, PolygonHierarchy } from "cesium";
+import * as Cesium from 'cesium';
 import * as turf from '@turf/turf';
 import { Feature, Polygon } from "@turf/turf";
 import R from 'ramda'
@@ -30,24 +31,44 @@ export default class SightCircle extends SightLine {
     var radius = turf.distance(center, to, option);
     var bearing2 = 360 / this.steps * i;
     let targetPos = turf.destination(center, radius, bearing2, option)
-    return Cartesian3.fromDegrees(targetPos.geometry.coordinates[0], targetPos.geometry.coordinates[1], centerPos.height)
+    return Cartesian3.fromDegrees(targetPos.geometry.coordinates[0], targetPos.geometry.coordinates[1])
   }
 
-  override increaseShape(ctl: Entity): void {
+  override finish() {
     if (this.ctls.length > 1) {
-      this.addSightLineGroup(this.ctls[0], ctl)
+      this.addSightLineGroup(this.ctls[0], this.ctls[1])
+    }
+  }
+
+  override increaseShape(ctl: Cesium.Entity): void {
+    console.log("increase a ctl, draw a outline : ", this.ctls)
+    if (this.ctls.length > 1) {
+      this.addOutline(this.ctls[0], ctl)
     } else {
       console.log("add origin point", ctl)
     }
   }
 
-  private addSightLineGroup(center: Entity, p1: Entity) {
+  private addOutline(center: Entity, p1: Entity) {
     this.shapes.push(this.entities.add(new Entity({
+      // polyline: {
+      //   width: 2,
+      //   material: Color.BLUE.withAlpha(0.3),
+      //   positions: new CallbackProperty((time, result) => {
+      //     let cpos = center.position?.getValue(JulianDate.now())
+      //     let opos = p1.position?.getValue(JulianDate.now())
+      //     let poslist: Array<Cartesian3> = []
+      //     for (let i = 0; i < this.steps; i++) {
+      //       let opos2 = this.getTargetPoint(cpos, opos, i)
+      //       poslist.push(opos2)
+      //     }
+      //     return poslist.concat(poslist[0])
+      //   }, false),
+      //   clampToGround: true,
+      // }
       polygon: {
-        fill: false,
-        outline: true,
-        outlineColor: Color.BLUE.withAlpha(0.3),
-        outlineWidth: 2,
+        fill: true,
+        material: Color.BLUE.withAlpha(0.05),
         hierarchy: new CallbackProperty((time, result) => {
           let cpos = center.position?.getValue(JulianDate.now())
           let opos = p1.position?.getValue(JulianDate.now())
@@ -58,12 +79,31 @@ export default class SightCircle extends SightLine {
           }
           return new PolygonHierarchy(poslist, [])
         }, false),
-        perPositionHeight: true,
+        perPositionHeight: false,
+        heightReference: HeightReference.CLAMP_TO_GROUND,
       }
     })))
+  }
 
+  private addSightLineGroup(center: Entity, p1: Entity) {
     for (let i = 0; i < this.steps; i++) {
       for (let j = 0; j < this.polylineNum; j++) {
+
+        let nosc = new CallbackProperty((time, result) => {
+          let cpos = center.position?.getValue(JulianDate.now())
+          let opos = p1.position?.getValue(JulianDate.now())
+          let opos2 = this.getTargetPoint(cpos, opos, i)
+          let peak = this.getSightPoints(cpos, opos2)
+
+          let poses = peak.filter(pks => !pks[0].inSight)
+          if (poses.length > j) {
+            let car3 = poses[j].map(pt => Cartographic.toCartesian(pt.pt, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
+            return car3
+          } else {
+            return undefined
+          }
+        }, false)
+
         this.shapes.push(this.entities.add(new Entity({
           name: '不可视部分',
           polyline: {
@@ -74,23 +114,24 @@ export default class SightCircle extends SightLine {
               //   let c = Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
               //   return this.highLighted ? c.brighten(0.6, new Color()) : c
               // }, true)),
-            positions: new CallbackProperty((time, result) => {
-              let cpos = center.position?.getValue(JulianDate.now())
-              let opos = p1.position?.getValue(JulianDate.now())
-              let opos2 = this.getTargetPoint(cpos, opos, i)
-              let peak = this.getSightPoints(cpos, opos2)
-
-              let poses = peak.filter(pks => !pks[0].inSight)
-              if (poses.length > j) {
-                let car3 = poses[j].map(pt => Cartographic.toCartesian(pt.pt, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
-                return car3
-              } else {
-                return undefined
-              }
-            }, false),
+            positions: nosc.getValue(JulianDate.now(), []),
             clampToGround: true
           }
         })))
+
+        let posc = new CallbackProperty((time, result) => {
+          let cpos = center.position?.getValue(JulianDate.now())
+          let opos = p1.position?.getValue(JulianDate.now())
+          let opos2 = this.getTargetPoint(cpos, opos, i)
+          let peak = this.getSightPoints(cpos, opos2)
+          let poses = peak.filter(pks => pks[0].inSight)
+          if (poses.length > j) {
+            let car3 = poses[j].map(pt => Cartographic.toCartesian(pt.pt, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
+            return car3
+          } else {
+            return undefined
+          }
+        }, false)
 
         this.shapes.push(this.entities.add(new Entity({
           name: '可视范围',
@@ -102,19 +143,7 @@ export default class SightCircle extends SightLine {
               //   let c = Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha)
               //   return this.highLighted ? c.brighten(0.6, new Color()) : c
               // }, true)),
-            positions: new CallbackProperty((time, result) => {
-              let cpos = center.position?.getValue(JulianDate.now())
-              let opos = p1.position?.getValue(JulianDate.now())
-              let opos2 = this.getTargetPoint(cpos, opos, i)
-              let peak = this.getSightPoints(cpos, opos2)
-              let poses = peak.filter(pks => pks[0].inSight)
-              if (poses.length > j) {
-                let car3 = poses[j].map(pt => Cartographic.toCartesian(pt.pt, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
-                return car3
-              } else {
-                return undefined
-              }
-            }, false),
+            positions: posc.getValue(JulianDate.now(), []),
             clampToGround: true
           }
         })))
