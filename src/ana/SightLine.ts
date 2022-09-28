@@ -124,7 +124,7 @@ export default class SightLine extends Graph {
         name: '遮挡点',
         polyline: {
           width: 2,
-          material: Color.fromCssColorString("#00aa00").withAlpha(0.8),
+          material: Color.BLUE.withAlpha(0.5),
           clampToGround: true,
           positions: new CallbackProperty((time, result) => {
             return this.ctls.map(ctl => ctl.position.getValue(time))
