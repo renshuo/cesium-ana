@@ -20,68 +20,25 @@ export default class SightLine extends Graph {
     )
   }
 
-  private polylineNum = 5 // 视线的线段数，视线被分割过多时，会导致远处线段不绘制
-
-
   private addSightLine(ctl0: Entity, ctl1: Entity) {
-
-    for (let i = 0; i < this.polylineNum; i++) {
-      let posc = new CallbackProperty((time, result) => {
-        let opos = ctl0.position?.getValue(JulianDate.now())
-        let dpos = ctl1.position?.getValue(JulianDate.now())
-        let peak = getSightPoints(opos, dpos, this.viewer.scene)
-        let poses = peak.filter(pks => !pks[0].inSight)
-        if (poses.length > i) {
-          let car3 = poses[i].map(pt => Cartographic.toCartesian(pt.point, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
-          return car3
-        } else {
-          return undefined
-        }
-      }, false)
-
-      this.shapes.push(this.entities.add(new Entity({
+    let opos = ctl0.position?.getValue(JulianDate.now())
+    let dpos = ctl1.position?.getValue(JulianDate.now())
+    let peak = getSightPoints(opos, dpos, this.viewer.scene)
+    peak.map( pks => {
+      let car3 = pks.map(pt => Cartographic.toCartesian(pt.point, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
+      let color = pks[0].inSight ? Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha) :
+        Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
+      let ent = this.entities.add(new Entity({
         name: '不可视部分',
         polyline: {
-          width: 2, // new CallbackProperty((time, result) => this.props.width, true),
-          material: Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha),
-          //material: new ColorMaterialProperty(
-          // new CallbackProperty(() => {
-          //   let c = Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
-          //   return this.highLighted ? c.brighten(0.6, new Color()) : c
-          // }, true)),
-          positions: posc.getValue(JulianDate.now(), []),
-          clampToGround: true
-        }
-      })))
-
-      let nosc = new CallbackProperty((time, result) => {
-        let opos = ctl0.position?.getValue(JulianDate.now())
-        let dpos = ctl1.position?.getValue(JulianDate.now())
-        let peak = getSightPoints(opos, dpos, this.viewer.scene)
-        let poses = peak.filter(pks => pks[0].inSight)
-        if (poses.length > i) {
-          return poses[i].map(pt => Cartographic.toCartesian(pt.point, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
-        } else {
-          return undefined
-        }
-      }, false)
-
-      let ent = this.entities.add(new Entity({
-        name: '可视范围',
-        polyline: {
-          width: 2, //new CallbackProperty((time, result) => this.props.width, true),
-          material: Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha),
-          //material: new ColorMaterialProperty(
-          // new CallbackProperty(() => {
-          //   let c = Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha)
-          //   return this.highLighted ? c.brighten(0.6, new Color()) : c
-          // }, true)),
-          positions: nosc.getValue(JulianDate.now(), []),
+          width: 2,
+          material: color,
+          positions: car3,
           clampToGround: true
         }
       }))
-      this.fillShape(ent)
-    }
+      super.fillShape(ent)
+    })
   }
 
   override finish() {
@@ -94,7 +51,7 @@ export default class SightLine extends Graph {
   override increaseTempShape(ctl: Entity): void {
     if (this.ctls.length > 1) {
       this.tempShapes.push(this.entities.add(new Entity({
-        name: '遮挡点',
+        name: '辅助线',
         polyline: {
           width: 2,
           material: Color.BLUE.withAlpha(0.5),

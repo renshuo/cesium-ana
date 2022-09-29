@@ -18,7 +18,7 @@ export function getSightPoints(opos: Cartesian3, dpos: Cartesian3, scene: Scene,
     let pos = Cartesian3.lerp(opos, dpos, i / step, new Cartesian3())
     let co: Cartographic = Cartographic.fromCartesian(pos)
     co.height = scene.globe.getHeight(co)
-    intPos.push({ point: co, index: i, slope: 0, inSight: false })
+    intPos.push({ point: co, index: i, slope: 0, inSight: true })
   }
 
   // 对视点的斜率，相对于初始斜率，变大或不变则可见，变小则不可见
@@ -34,6 +34,10 @@ export function getSightPoints(opos: Cartesian3, dpos: Cartesian3, scene: Scene,
       pt.inSight = false
     }
   }
+
   let sightgp = R.groupWith((pa: SightLinePoint, pb: SightLinePoint) => pa.inSight === pb.inSight, intPos)
-  return R.drop(1, sightgp)
+  console.log("get sight group: ", sightgp)
+  return sightgp
+
+  //return R.drop(1, sightgp)
 }

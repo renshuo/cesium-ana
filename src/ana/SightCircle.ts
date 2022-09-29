@@ -1,8 +1,8 @@
-import {Graph} from 'cesium-plotting-symbol'
+import { Graph } from 'cesium-plotting-symbol'
 import { Viewer, Entity, Cartesian3, CallbackProperty, Color, JulianDate, HeightReference, Cartographic, PolygonHierarchy } from "cesium";
 import * as Cesium from 'cesium';
 import * as turf from '@turf/turf';
-import {getSightPoints} from './SightUtil'
+import { getSightPoints } from './SightUtil'
 
 export default class SightCircle extends Graph {
 
@@ -39,50 +39,23 @@ export default class SightCircle extends Graph {
       let centerPos = this.ctls[0].position.getValue(JulianDate.now())
       let tgts = this.getAllTarget(centerPos, this.ctls[1].position.getValue(JulianDate.now()))
       tgts.map(tgt => {
-        for (let i = 0; i < this.polylineNum; i++) {
-          let peak = getSightPoints(centerPos, tgt, this.viewer.scene)
-          let poses = peak.filter(pks => !pks[0].inSight)
-          let car3 = undefined
-          if (poses.length > i) {
-            car3 = poses[i].map(pt => Cartographic.toCartesian(pt.point, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
-          }
 
-          this.shapes.push(this.entities.add(new Entity({
+        let peak = getSightPoints(centerPos, tgt, this.viewer.scene)
+
+        peak.map(pks => {
+          let car3 = pks.map(pt => Cartographic.toCartesian(pt.point, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
+          let color = pks[0].inSight ? Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha) :
+            Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
+          let ent = this.entities.add(new Entity({
             name: '不可视部分',
             polyline: {
-              width: 2, // new CallbackProperty((time, result) => this.props.width, true),
-              material: Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha),
-              //material: new ColorMaterialProperty(
-              // new CallbackProperty(() => {
-              //   let c = Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
-              //   return this.highLighted ? c.brighten(0.6, new Color()) : c
-              // }, true)),
-              positions: car3,
-              clampToGround: true
-            }
-          })))
-
-          poses = peak.filter(pks => pks[0].inSight)
-          if (poses.length > i) {
-            car3 = poses[i].map(pt => Cartographic.toCartesian(pt.point, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
-          }
-
-          let ent = this.entities.add(new Entity({
-            name: '可视范围',
-            polyline: {
-              width: 2, //new CallbackProperty((time, result) => this.props.width, true),
-              material: Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha),
-              //material: new ColorMaterialProperty(
-              // new CallbackProperty(() => {
-              //   let c = Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha)
-              //   return this.highLighted ? c.brighten(0.6, new Color()) : c
-              // }, true)),
+              width: 2,
+              material: color,
               positions: car3,
               clampToGround: true
             }
           }))
-          this.fillShape(ent)
-        }
+        })
       })
       console.log("get target points: ", tgts)
     }
@@ -97,7 +70,7 @@ export default class SightCircle extends Graph {
   }
 
   private addOutline(center: Entity, p1: Entity) {
-    this.tempShapes.push(this.entities.add(new Entity({
+    this.shapes.push(this.entities.add(new Entity({
       polygon: {
         fill: true,
         material: Color.BLUE.withAlpha(0.05),
