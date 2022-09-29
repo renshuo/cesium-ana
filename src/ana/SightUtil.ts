@@ -14,7 +14,7 @@ export function getSightPoints(opos: Cartesian3, dpos: Cartesian3, scene: Scene,
                                humanHeight: number = 2 // 原点的人身高度
                               ): Array<Array<SightLinePoint>> {
   let intPos: Array<SightLinePoint> = []
-  for (let i = 0; i < step; i++) {
+  for (let i = 0; i <= step; i++) {
     let pos = Cartesian3.lerp(opos, dpos, i / step, new Cartesian3())
     let co: Cartographic = Cartographic.fromCartesian(pos)
     co.height = scene.globe.getHeight(co)
@@ -38,6 +38,6 @@ export function getSightPoints(opos: Cartesian3, dpos: Cartesian3, scene: Scene,
   let sightgp = R.groupWith((pa: SightLinePoint, pb: SightLinePoint) => pa.inSight === pb.inSight, intPos)
   console.log("get sight group: ", sightgp)
   return sightgp
-
-  //return R.drop(1, sightgp)
 }
+
+

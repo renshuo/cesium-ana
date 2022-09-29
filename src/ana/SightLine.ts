@@ -24,12 +24,17 @@ export default class SightLine extends Graph {
     let opos = ctl0.position?.getValue(JulianDate.now())
     let dpos = ctl1.position?.getValue(JulianDate.now())
     let peak = getSightPoints(opos, dpos, this.viewer.scene)
-    peak.map( pks => {
-      let car3 = pks.map(pt => Cartographic.toCartesian(pt.point, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
+    peak.map( (pks, i) => {
       let color = pks[0].inSight ? Color.fromCssColorString(this.props.color).withAlpha(this.props.alpha) :
         Color.fromCssColorString(this.props.maskedColor).withAlpha(this.props.alpha)
+      let pointList = pks
+      if (i > 0) {
+        let lastPks = peak[i - 1]
+        let lastPoint = lastPks[lastPks.length - 1]
+        pointList = [lastPoint].concat(pks)
+      }
+      let car3 = pointList.map(pt => Cartographic.toCartesian(pt.point, this.viewer.scene.globe.ellipsoid, new Cartesian3()))
       let ent = this.entities.add(new Entity({
-        name: '不可视部分',
         polyline: {
           width: 2,
           material: color,
