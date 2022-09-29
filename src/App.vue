@@ -4,6 +4,7 @@
       <button class="tbt" @click="heightLine">等高线</button>
       <button class="tbt" @click="createSightLine">通视线</button> 
       <button class="tbt" @click="createSightCircle">圆形通视</button> 
+      <button class="tbt" @click="createSightArea">视域分析</button> 
     </div>
 
     <div id="mapContainer"></div>
@@ -27,6 +28,10 @@ function createSightLine() {
 
 function createSightCircle() {
   window.ca.createSightCircle()
+}
+
+function createSightArea() {
+  window.ca.createSightArea()
 }
 
 onMounted(() => {
