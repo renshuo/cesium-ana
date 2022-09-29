@@ -10,7 +10,7 @@ export interface SightLinePoint {
 }
 
 export function getSightPoints(opos: Cartesian3, dpos: Cartesian3, scene: Scene,
-                               step: number = 50, // // 视线的切分数量
+                               step: number = 100, // // 视线的切分数量
                                humanHeight: number = 2 // 原点的人身高度
                               ): Array<Array<SightLinePoint>> {
   let intPos: Array<SightLinePoint> = []
@@ -36,7 +36,6 @@ export function getSightPoints(opos: Cartesian3, dpos: Cartesian3, scene: Scene,
   }
 
   let sightgp = R.groupWith((pa: SightLinePoint, pb: SightLinePoint) => pa.inSight === pb.inSight, intPos)
-  console.log("get sight group: ", sightgp)
   return sightgp
 }
 

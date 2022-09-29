@@ -7,8 +7,7 @@ import { getSightPoints } from './SightUtil'
 export default class SightCircle extends Graph {
 
   maxPointNum: number = 2
-  option = { steps: 36, unites: 'meters' }
-  steps = 32
+  steps = 100
   private polylineNum = 5 // 视线的线段数，视线被分割过多时，会导致远处线段不绘制
 
   constructor(prop: {}, viewer: Viewer, layer: Entity) {
