@@ -42,26 +42,22 @@ export function getSightPoints(opos: Cartesian3, dpos: Cartesian3, scene: Scene,
 }
 
 
-export function toArea(points: Array<Array<Array<SightLinePoint>>>) {
-  let grid = points.map( line => {
-    return line.flat()
+export function toArea(points: Array<Array<Array<SightLinePoint>>>): Array<Array<Array<SightLinePoint>>> {
+  let grid = points.map(lines => {
+    return lines.flat().map( slp => {
+      return turf.point([slp.group, slp.index], { inSight: slp.inSight ? 1 : -1, slp })
+    })
   })
-  let xmax = grid.length-1
-  let ymax = grid[0].length-1
-  let tps = points.flat().flat().map( slp  => {
-    return turf.point([slp.group, slp.index], { inSight: slp.inSight ? 1 : -1, slp })
-  })
-  let coll = turf.featureCollection(tps)
-  console.log('get coll: ', coll)
-  let areas = turf.isobands(coll, [-2, 0, 2], {zProperty: 'inSight'})
-
+  let areas = turf.isobands(turf.featureCollection(grid.flat()), [-2, 0, 2], { zProperty: 'inSight' })
+  let xmax = grid.length - 1
+  let ymax = grid[0].length - 1
   return areas.features.map( area => {
     return area.geometry.coordinates.map( pg => {
       return pg[0].map(ps => {
         let [x, y] = ps
         let x1 = x > xmax ? xmax : Math.floor(x)
         let y1 = y > ymax ? ymax : Math.floor(y)
-        return grid[x1][y1]
+        return grid[x1][y1].properties.slp
       })
     })
   })

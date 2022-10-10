@@ -2,7 +2,7 @@ import { Graph } from 'cesium-plotting-symbol'
 import { Viewer, Entity, Cartesian3, CallbackProperty, Color, JulianDate, HeightReference, Cartographic, PolygonHierarchy, Math, Iso8601 } from "cesium";
 import * as turf from "@turf/turf";
 import { Feature } from '@turf/turf';
-import { getSightPoints, toArea } from './SightUtil'
+import { getSightPoints, toArea, SightLinePoint } from './SightUtil'
 
 
 export default class SightArea extends Graph{
@@ -32,8 +32,10 @@ export default class SightArea extends Graph{
   }
 
 
-  private drawAreas(areas) {
-    let colrs = [Color.RED, Color.GREEN]
+  private drawAreas(areas: Array<Array<Array<SightLinePoint>>>) {
+    let brighten = 0.2
+    let alpha = 0.5
+    let colrs = [Color.RED.withAlpha(alpha).brighten(brighten, new Color()), Color.GREEN.withAlpha(alpha).brighten(brighten, new Color())]
     areas.map((area, i) => {
       area.map(pg => {
         let poses = pg.map(p => {
@@ -77,16 +79,17 @@ export default class SightArea extends Graph{
     console.log(" create sight area")
     let p1 = this.ctlToPoint(this.ctls[0])
     let p2 = this.ctlToPoint(this.ctls[1])
-    console.log("get point: ", p1, p2)
     let tgts = this.getTarget(p1, p2)
-    console.log("get target : ", tgts)
+    //console.log("get target point list : ", tgts)
     let origin = this.ctls[0].position.getValue(JulianDate.now())
     let peaksss = tgts.map( (tgt,i) => {
       return getSightPoints(origin, tgt, this.viewer.scene, i)
     })
-    let areas = toArea(peaksss)
-    this.drawAreas(areas)
     //this.drawAreaPoints(peaksss)
+    //console.log('get sight line peak group list: ', peaksss)
+    let areas = toArea(peaksss)
+    //console.log('get sight area polygons: ', areas)
+    this.drawAreas(areas)
   }
 
   sightRadian:number = 60 //视角范围角度
@@ -97,7 +100,6 @@ export default class SightArea extends Graph{
     var bear0 = turf.bearing(center, p1)
     var arc = turf.lineArc(center, radius, bear0-this.sightRadian/2, bear0+this.sightRadian/2, {steps: this.sightArcSteps * 360/this.sightRadian});
     let cood = turf.getCoords(arc)
-    console.log("get cood: ", cood)
     return cood.map(pos => Cartesian3.fromDegrees(pos[0], pos[1]))
   }
 
@@ -108,5 +110,4 @@ export default class SightArea extends Graph{
     pt.properties.height = co.height
     return pt
   }
-
 }
