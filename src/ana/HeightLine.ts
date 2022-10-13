@@ -23,13 +23,14 @@ export default class HeightLine {
   }
 
   public createHeightLine() {
-    let g = this.gm.create({ obj: 'Rectangle', fill: true, alpha: 0.2, clamp: true })
-
-    this.gm.setGraphFinishHandler((graph) => {
-      if (!graph.isHeightLined) {
-        this.drawHeightLine(graph)
-      } else {
-        console.log("hight line is drawed")
+    let g = this.gm.create({
+      obj: 'Rectangle', fill: true, alpha: 0.2, clamp: true,
+      finishHandler: (self) => {
+        if (!self.isHeightLined) {
+          this.drawHeightLine(self)
+        } else {
+          console.log("hight line is drawed")
+        }
       }
     })
   }
@@ -39,16 +40,16 @@ export default class HeightLine {
     return this.viewer.scene.globe.getHeight(co)
   }
 
-    private getBreaks(grid: FeatureCollection): Array<number> {
+  private getBreaks(grid: FeatureCollection): Array<number> {
     let top = R.reduce(R.maxBy(p => p.properties.height), grid.features[0], grid.features)
     let bottom = R.reduce(R.minBy(p => p.properties.height), grid.features[0], grid.features)
     let topHei = top.properties.height
     let bottomHei = bottom.properties.height
     console.log("get tiptop: ", topHei, bottomHei)
 
-    let bottomCeil = Math.ceil(bottomHei/this.heiBreakDelta)-1
-    let topCeil = Math.ceil(topHei/this.heiBreakDelta)
-    let breaks = R.range(bottomCeil, topCeil).map( n => n*this.heiBreakDelta)
+    let bottomCeil = Math.ceil(bottomHei / this.heiBreakDelta) - 1
+    let topCeil = Math.ceil(topHei / this.heiBreakDelta)
+    let breaks = R.range(bottomCeil, topCeil).map(n => n * this.heiBreakDelta)
     console.log("get breaks: ", breaks)
     return breaks
   }
